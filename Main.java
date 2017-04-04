@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
-
+    // sample change to commit
     public static final int LETTER_HEIGHT = 6;
     public static final int LETTER_WIDTH = 4;
 
