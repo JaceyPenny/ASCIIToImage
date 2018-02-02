@@ -30,10 +30,29 @@ public class Main {
 
         if (input == 1) {
             try {
+                double scaling = -1;
+                while (scaling == -1) {
+                    System.out.print("Scaling (default 1.0): ");
+                    String scalingInput = scanner.nextLine();
+                    if (scalingInput.equals("")) {
+                        scaling = 1;
+                        break;
+                    }
+
+                    try {
+                        scaling = Double.parseDouble(scalingInput);
+                    } catch (NumberFormatException e) {
+                        scaling = -1;
+                    }
+                }
+
                 BufferedImage image = ImageIO.read(new File(inputFileName));
 
-                int lineLength = image.getWidth() / LETTER_WIDTH;
-                int lineCount = image.getHeight() / LETTER_HEIGHT;
+                int scaledLetterHeight = (int) Math.floor(LETTER_HEIGHT / scaling);
+                int scaledLetterWidth = (int) Math.floor(LETTER_WIDTH / scaling);
+
+                int lineLength = image.getWidth() / scaledLetterWidth;
+                int lineCount = image.getHeight() / scaledLetterHeight;
 
                 System.out.println("Creating " + lineLength + " lines each with " + lineCount + " characters");
 
@@ -44,7 +63,7 @@ public class Main {
                 for (int y = 0; y < lineCount; y++) {
                     StringBuilder thisLine = new StringBuilder();
                     for (int x = 0; x < lineLength; x++) {
-                        char character = getCharForPosition(x, y, raster);
+                        char character = getCharForPosition(x, y, scaling, raster);
                         thisLine.append(character);
                     }
                     fileWriter.println(thisLine.toString());
@@ -87,20 +106,25 @@ public class Main {
         }
     }
 
-    private static char getCharForPosition(int x, int y, Raster image) {
+    private static char getCharForPosition(int x, int y, double scaling, Raster image) {
 
         int grayscaleSum = 0;
 
+        int scaledLetterHeight = (int) Math.ceil(LETTER_HEIGHT / scaling);
+        int scaledLetterWidth = (int) Math.ceil(LETTER_WIDTH / scaling);
 
-        for (int i_y = 0; i_y < LETTER_HEIGHT; i_y++) {
-            for (int i_x = 0; i_x < LETTER_WIDTH; i_x++) {
+        System.out.println(scaledLetterHeight);
+        System.out.println(scaledLetterWidth);
+
+        for (int i_y = 0; i_y < scaledLetterHeight; i_y++) {
+            for (int i_x = 0; i_x < scaledLetterWidth; i_x++) {
                 int[] pixelData = new int[4];
-                image.getPixel(x*LETTER_WIDTH + i_x, y*LETTER_HEIGHT + i_y, pixelData);
+                image.getPixel(x*scaledLetterWidth + i_x, y*scaledLetterHeight + i_y, pixelData);
                 grayscaleSum += (pixelData[0] + pixelData[1] + pixelData[2]) / 3;
             }
         }
 
-        grayscaleSum /= LETTER_HEIGHT * LETTER_WIDTH;
+        grayscaleSum /= scaledLetterHeight * scaledLetterWidth;
 
         char closestCharBelow = 'M';
         int closestBelow = 0;
